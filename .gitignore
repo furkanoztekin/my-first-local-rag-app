@@ -1,0 +1,13 @@
+# Python sanal ortamı
+venv/
+__pycache__/
+
+# Çevresel değişkenler
+.env
+
+# Veritabanı dosyaları
+*.db
+*.sqlite3
+
+# İşletim sistemi kalıntıları
+.DS_Store
