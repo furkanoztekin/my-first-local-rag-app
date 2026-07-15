@@ -33,8 +33,14 @@ def main():
     
     print(" - Phi-3.5 modeli (GPU üzerinden) yükleniyor...")
     chat_model = catalog.get_model("phi-3.5-mini")
-    chat_model.load() # CUDA kayıtlı olduğu için otomatik GPU varyantını seçecek!
+    chat_model.load() 
+    
     chat_client = chat_model.get_chat_client()
+    
+    # KESİN FREN SİSTEMİ (Anti-Loop Ayarları)
+    chat_client.settings.temperature = 0.3  # Modelin saçmalamasını engeller
+    chat_client.settings.top_p = 0.9        # Kelime yelpazesini daraltır
+    chat_client.settings.max_tokens = 800   # 🛑 250 kelimeden sonra fiziksel olarak susar!
     
     # 4. Vektör Veritabanı Bağlantısı
     print(" - Vektör veritabanına bağlanılıyor...")
@@ -42,7 +48,7 @@ def main():
     try:
         collection = db_client.get_collection(name="pdf_notlarim")
     except Exception as e:
-        print(f"❌ Koleksiyon bulunamadı: {e}\nLütfen önce PDF'leri veritabanına eklediğinden emin ol.")
+        print(f"❌ Koleksiyon bulunamadı: {e}\nLütfen önce ingest.py çalıştırarak PDF'leri veritabanına ekle.")
         sys.exit()
     
     print("\n" + "="*60)
@@ -56,13 +62,18 @@ def main():
         
         try:
             print("🔎 Notlar taranıyor...")
-            # Soruyu vektöre çevir ve veritabanında ara
             soru_vektoru = embed_client.generate_embeddings(inputs=[soru]).data[0].embedding
             sonuclar = collection.query(query_embeddings=[soru_vektoru], n_results=3)
             baglam = "\n\n--- YENİ NOT ---\n\n".join(sonuclar['documents'][0])
             
-            # Modele bağlamı ve soruyu ver
-            sistem_mesaji = f"Sen bir akademik asistansın. Sadece aşağıdaki notlara dayanarak cevap ver. Notlar: {baglam}"
+            # KATI SİSTEM MESAJI
+            sistem_mesaji = f"""Sen bir akademik asistansın. Sadece aşağıdaki notlara dayanarak kısa, net ve anlaşılır bir cevap ver. 
+            KURALLAR: 
+            1. Asla aynı cümleyi tekrar etme.
+            2. 3-4 cümleyi geçme.
+            3. Cevabını bitirince doğrudan sus.
+            Notlar: {baglam}"""
+            
             response = chat_client.complete_chat(messages=[
                 {"role": "system", "content": sistem_mesaji},
                 {"role": "user", "content": soru}
