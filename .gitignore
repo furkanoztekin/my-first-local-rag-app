@@ -1,13 +1,21 @@
-# Python sanal ortamı
+# Python sanal ortamı ve önbellek dosyaları
 venv/
 __pycache__/
+*.py[cod]
 
-# Çevresel değişkenler
+# Çevresel değişkenler ve Loglar
 .env
+*.log
 
-# Veritabanı dosyaları
+# Vektör Veritabanı ve Yerel SQL Dosyaları
+vektor_db/
 *.db
 *.sqlite3
 
-# İşletim sistemi kalıntıları
+# Büyük model dosyaları ve Test PDF'leri
+*.gguf
+*.pdf
+
+# İşletim sistemi kalıntıları ve VS Code ayarları
 .DS_Store
+.vscode/
